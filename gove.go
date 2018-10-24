@@ -1,6 +1,8 @@
 package main
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 func main() {
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
@@ -14,8 +16,21 @@ func main() {
 	}
 	defer window.Destroy()
 
+	renderer, err := sdl.CreateRenderer(window, -1, 0)
+	if err != nil {
+		panic(err)
+	}
+	defer renderer.Destroy()
+
+	// Clear screen
+	renderer.SetDrawColor(0, 0, 0, 255)
+	renderer.Clear()
+	renderer.Present()
+
 	running := true
 	for running {
+		window.UpdateSurface()
+
 		for evt := sdl.PollEvent(); evt != nil; evt = sdl.PollEvent() {
 			switch evt.(type) {
 			case *sdl.QuitEvent:
