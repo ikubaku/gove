@@ -8,11 +8,11 @@ import (
 )
 
 type SDL2Context struct {
-	window         *sdl.Window
-	renderer       *sdl.Renderer
-	is_sdl2_init   bool
-	is_window_ok   bool
-	is_renderer_ok bool
+	window       *sdl.Window
+	renderer     *sdl.Renderer
+	isSdl2Init   bool
+	isWindowOk   bool
+	isRendererOk bool
 }
 
 func prg_init() (SDL2Context, error) {
@@ -22,14 +22,14 @@ func prg_init() (SDL2Context, error) {
 		fmt.Printf("Could not initialize SDL2: %s\n", err.Error())
 		return SDL2Context{}, errors.New("Counld not initialize SDL2")
 	}
-	ctx.is_sdl2_init = true
+	ctx.isSdl2Init = true
 
 	window, err := sdl.CreateWindow("Gove - 0.1.0", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 640, 480, sdl.WINDOW_SHOWN)
 	if err != nil {
 		fmt.Printf("Could not create the window: %s\n", err.Error())
 		return SDL2Context{}, errors.New("Could not create the Window")
 	}
-	ctx.is_window_ok = true
+	ctx.isWindowOk = true
 	ctx.window = window
 
 	renderer, err := sdl.CreateRenderer(window, -1, 0)
@@ -37,20 +37,20 @@ func prg_init() (SDL2Context, error) {
 		fmt.Printf("Could not initialize the Renderer. :%s\n", err.Error())
 		return SDL2Context{}, errors.New("Could not initialize the Renderer")
 	}
-	ctx.is_renderer_ok = true
+	ctx.isRendererOk = true
 	ctx.renderer = renderer
 
 	return ctx, nil
 }
 
 func prg_exit(ctx SDL2Context) {
-	if ctx.is_renderer_ok {
+	if ctx.isRendererOk {
 		ctx.renderer.Destroy()
 	}
-	if ctx.is_window_ok {
+	if ctx.isWindowOk {
 		ctx.window.Destroy()
 	}
-	if ctx.is_sdl2_init {
+	if ctx.isSdl2Init {
 		sdl.Quit()
 	}
 }
