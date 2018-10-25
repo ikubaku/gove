@@ -4,14 +4,17 @@ import (
 	"errors"
 	"fmt"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 	"os"
 )
 
 type SDL2Context struct {
 	window       *sdl.Window
-	renderer     *sdl.Renderer
+	font         *ttf.Font
 	isSdl2Init   bool
+	isTTF2Init   bool
 	isWindowOk   bool
+	isFontOk     bool
 	isRendererOk bool
 }
 
@@ -24,6 +27,12 @@ func prg_init() (SDL2Context, error) {
 	}
 	ctx.isSdl2Init = true
 
+	if err := ttf.Init(); err != nil {
+		fmt.Printf("Could not initialize SDL2_TTF: %s\n", err.Error())
+		return SDL2Context{}, errors.New("Counld not initialize SDL2_TTF")
+	}
+	ctx.isTTF2Init = true
+
 	window, err := sdl.CreateWindow("Gove - 0.1.0", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, 640, 480, sdl.WINDOW_SHOWN)
 	if err != nil {
 		fmt.Printf("Could not create the window: %s\n", err.Error())
@@ -32,23 +41,26 @@ func prg_init() (SDL2Context, error) {
 	ctx.isWindowOk = true
 	ctx.window = window
 
-	renderer, err := sdl.CreateRenderer(window, -1, 0)
+	font, err := ttf.OpenFont("./Data/Fonts/Terminus-ja.ttf", 16)
 	if err != nil {
-		fmt.Printf("Could not initialize the Renderer. :%s\n", err.Error())
-		return SDL2Context{}, errors.New("Could not initialize the Renderer")
+		fmt.Printf("Could not load the default font: %s\n", err.Error())
+		return SDL2Context{}, errors.New("Could not load the default font")
 	}
-	ctx.isRendererOk = true
-	ctx.renderer = renderer
+	ctx.isFontOk = true
+	ctx.font = font
 
 	return ctx, nil
 }
 
 func prg_exit(ctx SDL2Context) {
-	if ctx.isRendererOk {
-		ctx.renderer.Destroy()
-	}
 	if ctx.isWindowOk {
 		ctx.window.Destroy()
+	}
+	if ctx.isFontOk {
+		ctx.font.Close()
+	}
+	if ctx.isTTF2Init {
+		ttf.Quit()
 	}
 	if ctx.isSdl2Init {
 		sdl.Quit()
@@ -63,13 +75,26 @@ func prg_main() int {
 		return 1
 	}
 
-	// Clear screen
-	ctx.renderer.SetDrawColor(0, 0, 0, 255)
-	ctx.renderer.Clear()
-	ctx.renderer.Present()
+	// Get the window surface
+	surface, err := ctx.window.GetSurface()
+	if err != nil {
+		fmt.Printf("FATAL: Could not get Window Surface: %s\n", err.Error())
+		return 1
+	}
 
 	running := true
 	for running {
+		messageSolid, err := ctx.font.RenderUTF8Solid("Hello, World!", sdl.Color{0, 255, 255, 255})
+		if err != nil {
+			fmt.Printf("FATAL: Could not create font: %s\n", err.Error())
+			return 1
+		}
+		err = messageSolid.Blit(nil, surface, nil)
+		if err != nil {
+			fmt.Printf("FATAL: messageSolid.Blit() failed: %s\n", err.Error())
+			return 1
+		}
+
 		ctx.window.UpdateSurface()
 
 		for evt := sdl.PollEvent(); evt != nil; evt = sdl.PollEvent() {
